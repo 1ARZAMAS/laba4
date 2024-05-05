@@ -16,51 +16,61 @@ N an bn bn – an
 
 using namespace std;
 
-/*ostream& operator<<(ostream& os, const vector<float>& vec){
-    for (size_t i = 0; i < vec.size(); ++i)
-    {
-        os << vec[i];
-        if (i != vec.size() - 1)
-            os << ", ";
-    }
-    return os;
-}
-*/
-
-float f(float x){
-    return 2 * log(x) - 1/2 * x + 1;
+float f(float x) {
+    return x*x - 3* sin(x);
 }
 
-float df(float x){
-    return 2/x - 1/2;
+float df(float x) {
+    return 2 * x - 3 * cos(x);
 }
 
-float g(float x){
+float g(float x) {
     return 0;
 }
 
-ostream& operator<< (ostream& os, const vector <float>& roots) {
-    for (size_t i = 0; i < roots.size(); ++i){
-        os << roots[i] << ' ';
-    }
-    return os;
+void printTable(float leftEdge, float RightPoint, int iteration) {
+
 }
 
-vector <float> graphMethod(float& leftEdge, float& rightEdge, float& x0){ // графический метод нахождения корней
-    vector <float> roots1;
-    for (float i = 0; i < 13.0; i+=0.01){
-        if ((f(i) > 0 and f(i + 0.01) < 0) or (f(i) < 0 and f(i + 0.01) > 0)){
-            cout << i << endl;
-            float rt = (2*i + 0.01)/2;
-            roots1.push_back(rt);
+vector <float> graphMethod(float& leftEdge, float& rightEdge) { // графический метод нахождения корней
+    vector<float> roots;
+    float step = 0.01;
+    float x = leftEdge;
+    while (x < rightEdge) {
+        float y1 = f(x);
+        float y2 = f(x + step);
+        if ((y1 > 0 && y2 < 0) or (y1 < 0 && y2 > 0)) {
+            float root = (x + x + step) / 2;
+            roots.push_back(root);
+        }
+        x += step;
+    }
+    return roots;
+}
+
+float bisectionMethod(float& leftEdge, float& rightEdge, float eps) { // метод половинного деления
+    int iteration = 1;
+    double middlePoint = 0.0;
+    if (f(leftEdge) * f(rightEdge) < 0) { // проверка на разность знаков функции на концах отрезка
+        while (abs(rightEdge - leftEdge) > eps) { // пока интервал больше погрешности
+            middlePoint = (rightEdge + leftEdge) / 2;
+            printTable(leftEdge, rightEdge, iteration);
+
+            if (f(leftEdge) * f(middlePoint) < 0) {
+                rightEdge = middlePoint; // если функция имеет разные знаки, то правая точка середина отрезка
+            } else {
+                leftEdge = middlePoint;
+            }
+            iteration++;
         }
     }
-    return roots1;
+    return middlePoint;
 }
 
-int main(){ // 2 * ln(x) - 0.5 * x + 1 = 0 
-    float leftEdge = 0, rightEdge = 0, x0 = 0;
-    vector<float> roots = graphMethod(leftEdge, rightEdge, x0);
-    
-    std::cout << roots;
+
+int main() { // x*x - 3* sin(x)
+    float leftEdge = -0.5, rightEdge = 3;
+    vector<float> roots = graphMethod(leftEdge, rightEdge); // корни в векторе
+    float eps = 0.0001;
+    float mid = bisectionMethod(leftEdge, rightEdge, eps);
 }
