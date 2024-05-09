@@ -104,7 +104,7 @@ int main() {
     }
 
     sort(new_numbers_arr.begin(), new_numbers_arr.end(), greater<int>()); // указываем на начало
-    cout << "Новый массив случайных чисел в порядке убывания:" << endl; // на конец и пишем функциональный объект
+    cout << "Новый массив случайных чsort(new_numbers_arr.begin(), new_numbers_arr.end(), greater<int>());исел в порядке убывания:" << endl; // на конец и пишем функциональный объект
     for (int num : new_numbers_arr) {
         cout << num << " ";
     }
