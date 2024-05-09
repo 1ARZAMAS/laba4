@@ -1,16 +1,3 @@
-// #include <iostream>
-// #include <vector>
-
-// using namespace std;
-
-// int main(){
-//     int n = 10;
-//     vector<int> randNums;
-//     for (int i; i < n; i++ ){
-//         randNums.push_back(rand()%151 + 150); // генерируем вектор случайных чисел от 150 до 300 включительно
-//     }
-// }
-
 #include <iostream>
 #include <random>
 #include <algorithm>
