@@ -59,8 +59,8 @@ int main() {
     // Создаем философов
     for (int i = 0; i < num_threads; ++i) {
         mutex& left_fork = forks[(i + 4) % num_threads];
-        mutex& right_fork = forks[(i + 1) % num_threads];
-        philosophers_threads.emplace_back(&Philosopher::action, Philosopher(i, (i + 4) % num_threads, (i + 1) % num_threads, left_fork, right_fork));
+        mutex& right_fork = forks[i];
+        philosophers_threads.emplace_back(&Philosopher::action, Philosopher(i, (i + 4) % num_threads, i, left_fork, right_fork));
     }
 
     for (auto& thread : philosophers_threads) {
