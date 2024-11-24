@@ -16,9 +16,9 @@ struct Student {
 };
 
 // Глобальная очередь индексов студентов и необходимые примитивы синхронизации
-queue<int> student_indices;  // Очередь индексов студентов
-mutex mtx;                   // Мьютекс для доступа к очереди
-condition_variable cv;       // Условная переменная для ожидания наличия задач
+queue<int> student_indices; // Очередь индексов студентов
+mutex mtx; // Мьютекс для доступа к очереди
+condition_variable cv; // Условная переменная для ожидания наличия задач
 
 string nameGenerator(){
     vector<string> surnames = {"Иванов", "Смирнов", "Кузнецов", "Попов", "Васильев", "Петров", "Соколов", "Михайлов", "Новиков",
@@ -90,6 +90,11 @@ int main(){
 
     threads.clear();
 
+    cout << "Students to expel:" << endl;
+    for (const auto& name : to_expel) {
+        cout << name << endl;
+    }
+
     // запуск без многозадачности
     auto startAgain = chrono::high_resolution_clock::now();
     
@@ -101,10 +106,10 @@ int main(){
     auto durationAgain = chrono::duration_cast<chrono::microseconds>(endAgain - startAgain);
     cout << "Without multithreads, time taken: " << durationAgain.count() << " ms" << endl;
 
-    //cout << "Students to expel:" << endl;
-    //for (const auto& name : to_expel) {
-    //    cout << name << endl;
-    //}
+    cout << "Students to expel:" << endl;
+    for (const auto& name : to_expel) {
+        cout << name << endl;
+    }
 
     return 0;
 }
