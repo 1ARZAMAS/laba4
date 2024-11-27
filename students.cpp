@@ -16,11 +16,10 @@ struct Student {
 };
 
 // Глобальная очередь индексов студентов и необходимые примитивы синхронизации
-queue<int> student_indices; // Очередь индексов студентов
 mutex mtx; // Мьютекс для доступа к очереди
 condition_variable cv; // Условная переменная для ожидания наличия задач
 
-string nameGenerator(){
+string nameGenerator() {
     vector<string> surnames = {"Иванов", "Смирнов", "Кузнецов", "Попов", "Васильев", "Петров", "Соколов", "Михайлов", "Новиков",
     "Фёдоров", "Морозов", "Волков", "Алексеев", "Лебедев", "Семёнов", "Егоров", "Павлов", "Козлов", "Степанов", "Николаев",
     "Орлов", "Андреев", "Макаров", "Никитин", "Захаров"};
@@ -30,24 +29,20 @@ string nameGenerator(){
     return result;
 }
 
-void process_student(const vector<Student>& students, vector<string>& to_expel, int course, int debtsAmount) {
-    while (true) {
-        int idx = -1;
-        unique_lock<mutex> lock(mtx); // мьютекс для защиты доступа
-
-        if (student_indices.empty()) { // если очередь пуста, то выходим из цикла
-            break;
-        }
-        
-        idx = student_indices.front(); // в противном случае берем индекс студента из очереди
-        student_indices.pop();
-        if (students[idx].debt > debtsAmount && students[idx].course > course) { // и обрабатываем условия для отчисления
-            to_expel.push_back(students[idx].name);
+void process_student(const vector<Student>& students, vector<string>& to_expel, int course, int debtsAmount, int start, int end) {
+    vector<string> local_result;
+    for (int i = start; i < end; ++i) {
+        if (students[i].debt > debtsAmount && students[i].course > course) {
+            local_result.push_back(students[i].name);
         }
     }
+    
+    // Блокируем доступ к общему вектору to_expel
+    lock_guard<mutex> lock(mtx);
+    to_expel.insert(to_expel.end(), local_result.begin(), local_result.end());
 }
 
-int main(){
+int main() {
     int studentsAmount;
     int threadsAmount;
     int course;
@@ -60,26 +55,25 @@ int main(){
     cin >> course;
     cout << "Enter amount of debts: ";
     cin >> debtsAmount;
+
     vector<Student> students;
-    for (int i = 0; i < studentsAmount; i++){ // пройдемся по всему вектору и заполним его случайными данными
+    for (int i = 0; i < studentsAmount; i++) {
         students.push_back({nameGenerator(), rand() % 5 + 1, rand() % 11});
     }
 
     vector<string> to_expel;  // вектор студентов на отчисление
 
-    // заполняем очередь индексами студентов
-    for (int i = 0; i < students.size(); ++i) {
-        student_indices.push(i);
-    }
-
     // запуск с многозадачностью
     auto start = chrono::high_resolution_clock::now();
 
     vector<thread> threads;
-    for (int i = 0; i < threadsAmount; ++i) {
-        threads.push_back(thread(process_student, cref(students), ref(to_expel), course, debtsAmount));
+    int size_thread = students.size() / threadsAmount;
+    for (int i = 0; i < threadsAmount; ++i) { 
+        int start = i * size_thread;
+        int end = (i == threadsAmount - 1) ? students.size() : (i + 1) * size_thread;
+        threads.push_back(thread(process_student, cref(students), ref(to_expel), course, debtsAmount, start, end));
     }
-
+    
     for (auto& t : threads) { // ждем завершения всех потоков
         t.join();
     }
@@ -90,26 +84,24 @@ int main(){
 
     threads.clear();
 
-    cout << "Students to expel:" << endl;
-    for (const auto& name : to_expel) {
-        cout << name << endl;
-    }
-
     // запуск без многозадачности
     auto startAgain = chrono::high_resolution_clock::now();
     
     // запускаем один поток для выполнения задачи
-    thread single_thread(process_student, cref(students), ref(to_expel), course, debtsAmount);
+    int beginning = 0;
+    int ending = students.size();
+    thread single_thread(process_student, cref(students), ref(to_expel), course, debtsAmount, beginning, ending);
     single_thread.join(); // ждем завершения потока
 
     auto endAgain = chrono::high_resolution_clock::now();
     auto durationAgain = chrono::duration_cast<chrono::microseconds>(endAgain - startAgain);
     cout << "Without multithreads, time taken: " << durationAgain.count() << " ms" << endl;
 
-    cout << "Students to expel:" << endl;
-    for (const auto& name : to_expel) {
-        cout << name << endl;
-    }
+    // Вывод студентов на отчисление
+    // cout << "Students to expel:" << endl;
+    // for (const auto& name : to_expel) {
+    //     cout << name << endl;
+    // }
 
     return 0;
 }
